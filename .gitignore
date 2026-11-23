@@ -6,3 +6,9 @@ dist
 .env
 .env.*
 !.env.example
+.baze-files/
+.firebase/
+functions/node_modules/
+firebase-debug*.log
+*.pem
+*.key

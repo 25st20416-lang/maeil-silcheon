@@ -1,4 +1,4 @@
--- 배포 때 BAZE 가 이 파일을 D1 에 적용한다. 바꿀 때는 기존 표를 지우지 말고 더하기만 한다.
+-- 사용하지 않는 시작 템플릿 스키마 보관본. 매일실천은 이 표를 사용하지 않는다.
 CREATE TABLE IF NOT EXISTS rate_limit (
   key TEXT PRIMARY KEY,
   count INTEGER NOT NULL,
