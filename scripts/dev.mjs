@@ -7,10 +7,7 @@ mkdirSync("dist", { recursive: true });
 const procs = [];
 const run = (cmd, args) => { const p = spawn(cmd, args, { stdio: "inherit" }); procs.push(p); return p; };
 run(process.execPath, ["node_modules/vite/bin/vite.js", "--strictPort"]);
-run(process.execPath, ["scripts/db-init.mjs"]).on("exit", code => {
-  if (code) console.error(`db-init exited ${code}; starting the API anyway`);
-  run(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "dev", "--ip", "0.0.0.0", "--port", "8787"]);
-});
+run(process.execPath, ["scripts/start-api.mjs"]);
 const stop = () => { for (const p of procs) p.kill("SIGTERM"); process.exit(0); };
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);

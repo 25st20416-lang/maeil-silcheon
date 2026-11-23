@@ -1,1 +1,1 @@
-{ "data": { "tables": [] }, "secrets": [] }
+{ "data": { "tables": ["notification_devices", "notification_schedules"] }, "secrets": ["NOTIFICATION_SECRET"] }

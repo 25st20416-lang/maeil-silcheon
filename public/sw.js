@@ -1,5 +1,5 @@
-const CACHE='practice-shell-v5';
-const SHELL=['/','/install.js?v=settings-1','/enhancements.js?v=settings-1','/refinements.css?v=settings-1','/firebase-app.js?v=settings-1','/firebase-config.js','/manifest.webmanifest','/icon.png','/icon512.png','/apple-touch-icon.png'];
+const CACHE='practice-shell-v6';
+const SHELL=['/','/install.js?v=push-1','/enhancements.js?v=push-1','/refinements.css?v=push-1','/notifications.js?v=push-1','/manifest.webmanifest','/icon.png','/icon512.png','/apple-touch-icon.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('practice-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{

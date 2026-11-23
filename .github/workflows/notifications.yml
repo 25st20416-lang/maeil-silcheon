@@ -1,0 +1,32 @@
+name: 매일실천 예약 알림
+on:
+  schedule:
+    - cron: '2-59/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: maeil-notifications
+  cancel-in-progress: false
+jobs:
+  send:
+    if: vars.NOTIFICATIONS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 예약 알림 확인과 발송 요청
+        env:
+          APP_URL: ${{ vars.NOTIFICATION_APP_URL }}
+          CRON_TOKEN: ${{ secrets.NOTIFICATION_CRON_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CRON_TOKEN"
+          test "$APP_URL" = 'https://maeil-silcheon.baze.cloud'
+          for batch in $(seq 1 20); do
+            result=$(curl --fail-with-body --silent --show-error --connect-timeout 10 --max-time 120 --retry 2 --retry-delay 3 --retry-all-errors \
+              --request POST --header "Authorization: Bearer $CRON_TOKEN" "$APP_URL/api/notifications/tick")
+            echo "$result" | jq '{ok, accepted, failed, skipped, more}'
+            test "$(echo "$result" | jq -r '.ok')" = 'true'
+            if test "$(echo "$result" | jq -r '.more')" != 'true'; then break; fi
+          done
