@@ -5,6 +5,8 @@ import { advanceDue, scheduleStatements, validateTasks } from './schedules';
 
 const app = new Hono<{ Bindings: Env; Variables: { device: string } }>();
 const now = () => Date.now();
+// Each expired device can use five subrequests; keep the whole tick below 50.
+const TICK_BATCH = 8;
 app.use('/api/*', async (c, next) => { await next();c.header('cache-control', 'no-store');c.header('x-content-type-options', 'nosniff'); });
 app.use('/api/*', bodyLimit({ maxSize: 64000, onError: c => c.json({ error: '일정 정보가 너무 커요. 실천 개수를 줄여 주세요.' }, 413) }));
 app.get('/api/health', c => c.json({ ok: true, notifications: !!c.env.NOTIFICATION_SECRET, preview: String(c.env.NOTIFICATION_MODE) === 'preview' }));
@@ -84,7 +86,7 @@ app.post('/api/notifications/tick', async c => {
   if (!c.env.NOTIFICATION_SECRET || !safeEqual(provided,cronToken(c.env.NOTIFICATION_SECRET))) return c.json({error:'실행 권한이 없어요.'},401);
   const timestamp = now();
   await c.env.DB.prepare('UPDATE notification_runtime SET last_tick_at=? WHERE id=1').bind(timestamp).run();
-  const {results} = await c.env.DB.prepare(`SELECT s.*,d.subscription FROM notification_schedules s JOIN notification_devices d ON d.device_id=s.device_id WHERE s.next_at<=? ORDER BY s.next_at LIMIT 10`).bind(timestamp).all<{device_id:string;task_id:string;name:string;time:string;next_at:number;subscription:string}>();
+  const {results} = await c.env.DB.prepare(`SELECT s.*,d.subscription FROM notification_schedules s JOIN notification_devices d ON d.device_id=s.device_id WHERE s.next_at<=? ORDER BY s.next_at LIMIT ?`).bind(timestamp,TICK_BATCH).all<{device_id:string;task_id:string;name:string;time:string;next_at:number;subscription:string}>();
   let accepted = 0, failed = 0, skipped = 0;
   for (const row of results) {
     // Advance first: a conditional atomic claim prevents concurrent or repeated sends.
@@ -102,7 +104,7 @@ app.post('/api/notifications/tick', async c => {
     if (result === 'accepted') accepted++;else failed++;
   }
   await c.env.DB.prepare('DELETE FROM notification_limits WHERE key IN (SELECT key FROM notification_limits WHERE expires_at<? LIMIT 100)').bind(timestamp).run();
-  return c.json({ok:true,accepted,failed,skipped,more:results.length===10});
+  return c.json({ok:true,accepted,failed,skipped,more:results.length===TICK_BATCH});
 });
 app.all('/api/*', c => c.json({error:'사용할 수 없는 요청이에요.'},404));
 app.notFound(c => c.env.ASSETS.fetch(c.req.raw));
