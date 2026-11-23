@@ -1,0 +1,4 @@
+{
+  "compilerOptions": { "target": "ES2022", "lib": ["ES2022"], "module": "ESNext", "moduleResolution": "bundler", "strict": true, "noEmit": true, "skipLibCheck": true, "types": ["@cloudflare/workers-types", "node"], "esModuleInterop": true },
+  "include": ["worker/notifications.ts", "worker/push.ts", "worker/schedules.ts", "worker-env.d.ts"]
+}

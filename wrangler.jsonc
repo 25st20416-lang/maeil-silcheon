@@ -1,6 +1,11 @@
 {
   "name": "daily-practice",
-  "compatibility_date": "2025-10-01",
-  "assets": { "directory": "dist", "not_found_handling": "single-page-application" },
-  "vars": {}
+  "main": "worker/notifications.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "dist", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  "d1_databases": [{ "binding": "DB", "database_name": "app", "database_id": "local" }],
+  "secrets": { "required": ["NOTIFICATION_SECRET"] },
+  "observability": { "enabled": true },
+  "vars": { "APP_URL": "https://maeil-silcheon.baze.cloud", "NOTIFICATION_MODE": "production" }
 }
